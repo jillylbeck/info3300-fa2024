@@ -112,7 +112,30 @@
     
     // 1. Old way
   
-    
+    Old Way: 
+let elements = demo.selectAll(“Circle”) //#searches for how many circles it can find
+			.data(circles); 
+//#checks the data sees that there is a circle and enters it into the array
+
+
+elements.exit()
+	.remove();
+//#changes selection from all you can find, to a set that should not exist anymore, then removes them 
+
+
+elements.enter() 
+	.append(“circle”)
+	.attr(“r”, 20)
+	.merge(elements) // this updates and makes the snake data flowwww
+.attr(“cx”, (d) => d[‘x’])
+.attr(“cy”,(d) => d.y ) //string so you can do d.y instead of d[‘y’]
+.attr(“fill”, d => colorScale(d.age))
+	
+
+
+//you will get an imaginary selection here, where it will pretend to select a circle. Thennnnnn, you can append a circle to that imagination to make the circle actually exist
+// because every circle has been linked to data through the .data at the beginning of the code, it takes the data, runs a function, and returns the ‘x’ value from the dictionary and set that to your ‘cx’. Use this same idea to set values to your cy, and fill even. 
+
     
     // 2. New way - shorthand version
     
