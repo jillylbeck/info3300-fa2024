@@ -139,7 +139,16 @@ elements.enter()
     
     // 2. New way - shorthand version
     
-    
+    //Use for HW5 
+//If you mess up the class names, the data.join will keep adding circles instead of removing and updating new ones
+  demo.selecAll(“circle.purpleCircles”).data(circles)
+      .join(“circle”)
+      .attr(“class”, “purpleCircles”)
+      .attr(“r”, 20)
+      .attr(“cx”, (d) => d[‘x’])
+      .attr(“cy”,(d) => d.y ) //#string so you can do d.y instead of d[‘y’]
+      .attr(“fill”, d => colorScale(d.age))
+
        
        
     // 3. New way - extended version
