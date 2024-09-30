@@ -1,0 +1,94 @@
+<html>
+    <head>
+    <title>INFO 3300 - HW5 - Jillian Beck - JLB574 </title>
+    <script src="https://d3js.org/d3.v7.min.js"></script>
+  
+    <style>
+    
+      .legend span {
+        margin-right: 10px;
+      }
+        
+      .gridlines line {
+        stroke: #bbb;
+      }
+      
+      .gridlines .domain {
+        stroke: none;
+      }
+      
+  
+    </style>
+
+</head>
+<body>
+
+    <h3> Problem One: </h3>
+<ul> 
+    <li> <p> A: This scale is divergent. This is an effective divergent scale because it connects and melds two seperate color hues with a neutral color in the middle. </p> </li>
+    <li> <p> B: This is not an effective scale to use for numerical data because it is a rainbow scale. 
+        This means that people who have any sort of color deficiency may have difficulty observing contrast between hues and therefore difficulty measuring the numerical rankings.
+    Additionally, the rainbow scale often leads to certain unevenness; in this instance, the yellow part of the graph, for example, seems much larger than other areas of the channel </p> </li>
+    <li> <p> C: Blue-Weak/Tritanomaly makes the change in hues barely noticeable.  
+        Blue-Blind/Tritanopia makes the entire scale appear like one single blue/green hue.
+        Monochromosy/Achromatopsia makes the whole scale appear one tone of grey. 
+     </p> </li>
+    <li> <p> D: In this scenario, I would not recommend that they use a rainbow scale to color the counties on this visualization. 
+        The issue with rainbow scales in this application is that there are so many different hues, viewers would have to continually compare county colors to the graph legend to remember the meaning.
+    Additionally, a rainbow scale is not inclusive for people who have color deficiencies. </p> </li>
+
+</ul>
+
+<h3> Problem Two: </h3>
+
+<p id="problem2">
+    <svg id="first-graph" height="600" width="600" style="background:black;"> </svg>
+
+    <script> 
+    
+    d3.csv("NCAA_shots.csv", d3.autoType)
+    .then( (data) => {
+        console.log(data); //checking that data actually loads andddddddd.... it looks good!
+
+        const svg = d3.select("svg#first-graph");
+        //const attemptExtent = d3.extent(data, d => d['attempt']);
+        const attemptExtent = d3.extent(data, d => d['log_attempt']);
+        const colorScale = d3.scaleSequential(attemptExtent, d3.interpolatePlasma);
+
+        let circles = svg.selectAll("circle").data(data)
+                         .join("circle")
+
+                         .attr("r", 5)
+                         //.attr("fill", d => colorScale(d.attempt) )
+                         .attr("fill", d => colorScale(d.log_attempt) )
+                         .attr("cx", d => d['x'])
+                         .attr("cy", d => d['y'] )
+                         .attr("opacity", 0.8);
+
+    });
+   
+    </script>
+ 
+ <h4> Comparison of Linear vs. Logarithmic color scales: </h4>
+
+ While the linear color scale would be helpful in situations where there are stark differences in counts of data across the entire dataset,
+ for a chart like this basketball shot graph, the linear color scale is not particularly helpful. The reason being that the amount of differences
+ in shots taken around the court area is relatively small, with the exception of the yellow dot which has such a high count due to being a penalty shot location for players.
+ In this scenario, using the logarithmic color scale is much more useful because it exagerates the differences in the data to show more accurately in the color hues where players take their shots more often (indicated by a more yellow hue).
+</p>
+
+<p id="problem3"> 
+    <h3> Problem Three:</h3>
+
+    <svg id="square" height="420" width="420" style="background:black;"> </svg>
+    
+
+</p>
+
+
+
+</body>
+
+
+
+</html>
