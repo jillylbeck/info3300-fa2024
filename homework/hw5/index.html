@@ -17,6 +17,10 @@
         stroke: none;
       }
       
+      input {
+        background: white;
+        accent-color: lightgrey; 
+      }
   
     </style>
 
@@ -79,12 +83,62 @@
 
 <p id="problem3"> 
     <h3> Problem Three:</h3>
-
-    <svg id="square" height="420" width="420" style="background:black;"> </svg>
     
+    <svg id="square" height="420" width="420" style="background: white;"> </svg>
+    <script>
+    //PART A
+    const square = d3.select("svg#square");
+    const ray = [];
+    const chartArea = square.append("g")
+                         .attr("id", "chartArea");
+    const xScale = d3.scaleLinear()
+                     .domain([0, 360])
+                     .range([20, 400]); //should be 20 pix apart from canvas on x-axis, it's 0+20 = 20, and then max is 400 (420-20=400)
+    
+    const yScale = d3.scaleLinear()
+                     .domain([0, 100]) 
+                     .range([400, 20]); //xScale since this scale is the y-axis, use the opposite padding as the x-axis. start at top (e.g 420 - 20 = 400)
+    
+    for (let c = 0; c <= 100; c += 5) {
+        for (let h = 0; h <= 360; h += 18) {
+            ray.push({ c: c, h: h });
+        }
+    }
+
+    //PART B
+    console.log(ray); //array good (e.g every combination of c and h seems to be present)
+
+    function showCircles(lightness) {
+        chartArea.selectAll("circle").data(ray)
+          .join("circle")
+          .attr("r", 10)
+          .attr("fill", d => d3.hcl(d.h, d.c, lightness) )
+          .attr("cx", d => xScale(d.h) )
+          .attr("cy", d => yScale(d.c) )
+    }
+
+    showCircles(80); //seems to be something slightly different in the colorings between this and the example but can't figure out what, check in OH! 
+
+
+    </script>
 
 </p>
 
+<p>
+     <!-- PART C -->
+
+ <input id = "bar" type="range" min="0" max="200" step="1" value = 80 />
+
+
+ <script> 
+    const input = document.querySelector("#bar");
+    input.addEventListener("input", (event) => {
+        lightness = event.target.value;
+        showCircles(lightness);
+    });
+
+</script>
+</p>
 
 
 </body>

@@ -70,7 +70,11 @@
       
   // 1. Check data quality
   console.log(data)
-  
+  //turn strings into JSdata objects
+  const timeParser = d3.timeParse('%Y-%m-%d') //timeParse takes the template for the dates that you are using. For example, one of our date strings looks like "2008-1-2"
+  data.forEach( d => {
+    d['date'] = timeParser(d['String Date'])
+  })
   
   // 2. Scales, axes, and gridlines
   
@@ -93,20 +97,46 @@
              .call(leftGridlines);
 
   // X Axis
-  
+  const dateExtent = d3.extent(data, d => d['date']);
+  //const dataScale = 
   
   // 3. Before we start drawing, we need a line generator
   //  this will help us to draw the path based on data, which otherwise is very complicated
   
+  var lineGen = d3.line()  //this automates the manual drawing that we did earlier in the semester with the path function
+                  .x( d => dataScale( d['date']))
+                  .y( d => carbonSCale(d['Carbond Dioxide (ppm)']))
+                  .curve(d3.curveMonotoneX) 
   
+  chartArea.append("path")
+            .datum(data)
+            .attr("class", "line")
+            .attr("fill", "none")
+            .attr("stroke", "steelblue")
+            .attr("stroke-width", 3)
+            .attr("d", lineGen)
   
   // 4. Append a <path>, bind the data, and run the generator 
   
+    chartArea.append("path")
+            .datum(data)
+            .attr("class", "line")
+            .attr("fill", "none")
+            .attr("stroke", "steelblue")
+            .attr("stroke-width", 3)
+            .attr("d", lineGen)
+
+    chartArea.selectAll("circle").data(data)
+             .join("circle")
+             .attr("cx", d => dataScale( d['date'])")
+             .attr("cy", d => carbonSCale(d['Carbond Dioxide (ppm)']) )
+             .attr("fill", "steelblue")
+             .attr("r", 5)
   
   
   // 5. Let's add some circles too!
   
-  
+ 
   
   
   
