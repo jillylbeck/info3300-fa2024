@@ -1,0 +1,238 @@
+<html>
+    <head>
+    <p>INFO 3300 - HW5 - Jillian Beck - JLB574 </p>
+    
+    <link href="https://fonts.googleapis.com/css?family=Lato:400,700|Raleway:400,700" rel="stylesheet">
+  
+    <script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/11.2.0/highlight.min.js"></script>
+    
+    <script src="https://d3js.org/d3.v7.min.js"></script>
+    <script src="https://d3js.org/topojson.v3.min.js"></script>
+    
+    <style>
+    
+    
+        .gridlines .domain {
+          display: none;
+        }
+        
+        .gridlines line {
+          stroke: #aaa;
+        }
+          
+      
+    </style>
+    
+
+
+    </head> 
+    
+
+    <body> 
+
+        <h3> Problem One: </h3>
+
+        <p id = "problem1"> 
+            <div id = "scatterplot">
+                <svg id="graph" height="500" width="800" style="margin-top:50px" >
+                </svg>
+            </div>
+
+        <script id = "notes1">
+                const svg = d3.select("#graph");
+                const width = svg.attr("width");
+                const height = svg.attr("height");
+                const margin = { top: 50, right: 50, bottom: 50, left:50};
+                const chartWidth = width - margin.left - margin.right;
+                const chartHeight = height - margin.top - margin.bottom;
+                const graph = svg.append("g").attr("transform","translate("+margin.left+","+margin.top+")");
+                const provinces = ["California", "New York", "Washington", "Oregon"];
+
+                
+                let annotations = svg.append("g").attr("id","annotations");
+                let chartArea = svg.append("g").attr("transform",`translate(${margin.left},${margin.top})`);                
+                
+            d3.json("wines.json", d3.autoType)                  
+                .then( (data) => {
+                console.log(data);
+                    
+                    
+                    data.forEach((d, i ) => {
+                        d.price = Number(d["price"].replace(',', '').replace('$', ''));
+                        d.points = Number(d["points"].replace(',', ''));
+
+                    });
+
+                    console.log("Numbers Parsed", data);
+
+
+                    clean_data = data.filter(d => {
+                        return provinces.includes(d.province) &&
+                            d["price"] >= 4 && d["price"] <= 201.76 &&
+                            d["points"] >= 80 && d["points"] <= 100 &&
+                            d["taster_name"] !== "Dr. Jeff Rzeszotarski";
+                            d['country'] == 'US';
+                    });
+
+                    console.log("Clean Data Post Filtering", clean_data);
+                    
+                    //Y-Axis stufffffffff
+                    const pointExtent = d3.extent(clean_data, d => d['points']);
+                    console.log("Point-Extent", pointExtent);
+
+                    const yScale = d3.scaleLinear().domain(pointExtent).range([chartHeight, 0]);
+
+                    let leftAxis = d3.axisLeft(yScale)
+                    let leftGridlines = d3.axisLeft(yScale)
+                                        .tickSize(-chartWidth-10)
+                                        .tickFormat("")
+                    
+                    annotations.append("g")
+                               .attr("class", "y axis")
+                               .attr("transform",`translate(${margin.left-10},${margin.top})`)
+                               .call(leftAxis)
+                    annotations.append("g")
+                               .attr("class", "y gridlines")
+                               .attr("transform",`translate(${margin.left-10},${margin.top})`)
+                               .call(leftGridlines);
+
+                    
+                    //X-axis stuffffffff
+                    const priceExtent = d3.extent(clean_data, d => d['price']);
+                    console.log("Price-Extent", priceExtent);
+
+
+                    const xScale = d3.scaleLinear().domain(priceExtent).range([0,chartWidth]);
+
+                    let bottomAxis = d3.axisBottom(xScale)
+                    let bottomGridlines = d3.axisBottom(xScale)
+                                            .tickSize(-chartHeight-10)
+                                            .tickFormat("")
+                    annotations.append("g")
+                    .attr("class", "x axis")
+                    .attr("transform",`translate(${margin.left},${chartHeight+margin.top+10})`)
+                    .call(bottomAxis);
+                    
+                    annotations.append("g")
+                    .attr("class", "x gridlines")
+                    .attr("transform",`translate(${margin.left},${chartHeight+margin.top+10})`)
+                    .call(bottomGridlines);
+
+                    
+                    const colorScale = d3.scaleOrdinal()
+                        .domain(provinces)
+                        .range(['purple', 'red', 'black', 'green']);
+
+                    console.log("Checking color lols", clean_data);
+
+                    function jitter() {
+                        return (Math.random() * 6) - 3;
+                    }
+
+                    chartArea.append('text')
+                        .attr('id', 'label')
+                        .attr('text-anchor', 'start')
+                        .attr('x', 10)
+                        .attr('y', 10);
+                    
+                    let mouseGroup = chartArea.append("g");
+                    
+                    let points = chartArea.selectAll("circle").data(clean_data)
+                                    .join("circle")
+                                    .attr("r", 4)
+                                    .attr("fill", d=> colorScale(d['province']))   // using attr here, style would work too
+                                    .attr("opacity", 0.5)
+                                    .attr("cx", d => xScale(d['price']) + jitter())
+                                    .attr("cy", d => yScale(d['points']) + jitter());
+
+                    points.on("mouseover", function() {
+                        d3.select(this)
+                            .attr('r', 2*4);
+
+                    let title = d3.select(this).datum()['title']
+                        d3.select('#label')
+                            .attr("width", 400)
+                            .attr("height", 40)
+                            .text(title)
+                    });
+
+                    points.on("mouseout", function() {
+                        d3.select(this)
+                            .attr('r', 4);
+                        d3.select('#label')
+                            .text('');
+                    });
+                    
+                    
+                });
+
+        </script>
+
+        </p>
+
+        <p id = "My-Rationale">
+            <h3> Let Me Explain...</h3>
+            <p id = "A"> 
+                <h5> Part A: </h5> <br>
+     
+                In my quest to identify false data, I followed the hyperlink from the hw assignment to the description of the "Wines" dataset; there, I discovered that only wines scored 80 or higher on "points" were supposed to be published in the data. Additionally, looking at the distribution of cost under the "price" column listed on the site, I saw that essentially every wine in the data was priced above $4 but less than $201.76. Based on the instructions of the homework, we were also only supposed to examine wines from the four following states: Washington, California, New York, Oregon. After loading the raw data provided in the homework 6 zip, I noticed several instances of wine being tasted by one "Dr. Jeff Rzeszotarski;" so either our professor has been moonlighting as a sommelier, or this is an additional indication of fake value points. I kept each of these key indicators of false data in mind when creating my clean_data version of the original dataset using filtering. Even though I had already accounted for the four correct provinces in my filtering, just to be safe I added an additional filtering condition ensuring only wine values from the US would be included in my clean_data. 
+                
+                <br>
+                <strong> Exact Count of Bad Data I Removed: 75 </strong>
+            </p>
+            <p id = "B">
+                <h5> Part B: </h5> <br>
+                <ul> 
+                <li> First and foremost - my axes rationale. In the past few assignments, we've switched back and forth between using scaleLinear and scaleLog. As I tried both out on this data, I quite simply did not enjoy how the log data looked and I thought it was more difficult to understand the data with uneven spacing between values. Since these data values correspond to the respective price and point scores of the wine, I decided an even, and readable scaleLinear was needed in this scenario </li>
+
+                <li> 
+                    As for my "d3.extent" decision - I had two main reasons for using d3.extent to set domains: (1) without too much knowledge about this data, and with fluid instructions for this homework, I wanted the domain to be dynamic and adaptable to the data rather than perform trial and error to discover the exact domain points to be used. (2) In our lectures, the professor largely uses d3.extent so honestly I felt most comfortable using his best practices.
+                </li>
+
+                <li> 
+                    Regarding color scheme...The instructions stated that each state should have their own specific color assigned on the graph. With this categorical scale in mind, I knew that the chosen color scale would also have to be discrete and categorical meaning...scaleOrdinal. I chose the colors Purple, Red, Green, and Black not only because they all vary in undertones from each other which creates high contrast, but also because these are all colors of different types of grapes! (and this is a dataset about wines...). As for the color of the gridlines on the graph, I once again adhered to the professor's best practices used in lectures of a light grey color so as not to overwhelm the data point colors. 
+                </li>
+
+                </ul>
+            </p>
+
+            <p id="C">
+                <h5> Part C: </h5> <br>
+                <ul> 
+                    <li> 
+                Firstly, since "jitter()" has not been taught yet in lecture, I examined <a href="https://www.w3schools.com/js/js_random.asp">this</a> site for resources on how to get random variables in javascript. Based on what I learnt, an advantage to using jitter to handle data overlap is that it requires minimal effort and doesn't threaten visibility of data by requiring you to continue lessening the opacity of data points. Contrastingly, a disadvantage to using this method is that it threatens the integrity of the data by imprecisely placing points on the graph. </li>
+                <li> Regarding my circles...I decided to make the radius of the circles "4" because any smaller and the points become difficult to read, but any larger and the graph starts to become too crowded. Despite setting jitter to the x and y values, as previously discussed, I did end up setting the opacity to 0.5 for the circles. I made this decision because I felt that despite the jitter, there was still some existing overlap that made the values difficult to read. The fill color of the circles is set to each specific state, as was already mentioned in part B. </li>
+
+                </ul>
+            </p>
+
+            <p id = "D">
+                <h5> Part D: </h5> <br>
+                <ul> 
+                    <li> Firstly...Using a mix of lecture code when the professor introduced us to mouseover and mouseout events, plus information I learned from  <a href = "https://website.education.wisc.edu/~swu28/d3t/concept.html"> this site </a> where I discovered you can call an element by just using "select(this)," I added some level of interactivity to the graph. It's not enough to just let users hover over an element, they need to recieve some sort of feedback that their hovering is actually accomplishing something. For this reason, and because it was in the instructions, I changed the radius of each data point to increase by twice its original size when a user hovers on it. This allows users to clearly distinguish between the chosen data point and all the others on the graph. Some benefits to this approach is that hovering on a point allows users to directly interact with the visualization and investigate it from a point-by-point basis. Using this format of interactivity also allows the inclusion of text labels (such as a description of the wine name on this visualization) which would otherwise be difficult to show on such a small space. Some disadvantages to this sort of interactivity is that the title of the wine can be a bit distracting when it hovers on the corner; this could be mitigated by making the background of the wine title appear above the gridlines to make it more clear to read.  </li>
+                </ul>
+            </p>
+        </p>
+
+        <p>
+            <h3> Answering the Main Questions</h3>
+
+            <p> 
+               <strong> - Is there a relationship between the price of wines and their 0-100 scores on a quality point scale?
+             </strong> 
+
+                Based on the visualization above, it seems that there is a very slight positive linear correlation between wine price and their scores on a quality point scale. Nevertheless, this relationship does not appear significant enough to assure a relationship between high price and high quality. 
+            </p>
+
+            <br> 
+
+            <p> 
+               <strong> - Are some wine regions better or more expensive than others? </strong> 
+                
+
+                Based on the many purple points that appear at higher quality scores than the other regions, it would appear that the Napa Valley could have higher quality wines in general. Likewise, the Napa Valley wines and the Washington wines mainly dominate the higher price category. Interestingly, wines from New York (typically the finger lakes) seem to dominate both lower quality and lower price part of the graph. 
+            </p>
+        </p>
+
+    </body>
+    </html> 
