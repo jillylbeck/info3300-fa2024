@@ -1,6 +1,6 @@
 <html>
     <head>
-    <p>INFO 3300 - HW5 - Jillian Beck - JLB574 </p>
+    <p>INFO 5100 - HW5 - Jillian Beck - JLB574 </p>
     
     <link href="https://fonts.googleapis.com/css?family=Lato:400,700|Raleway:400,700" rel="stylesheet">
   
@@ -31,8 +31,94 @@
 
         <h3> Creating a Choropleth Map </h3>
 
-        <p id = 'A'> 
+        <p id = '1'> 
+        
+          <svg id="choropleth" height="770" width="990" style="margin:20px"></svg>
+          <ul id="thresholds"></ul>
+
+
+          <script id="notes1">
+            //1A
+            const svg = d3.select("#choropleth");
+            const width = svg.attr("width");
+            const height = svg.attr("height");
+            const margin = { top: 20, right: 20, bottom: 20, left:20};
+            const mapWidth = width - margin.left - margin.right;
+            const mapHeight = height - margin.top - margin.bottom;
+            const map = svg.append("g")
+                            .attr("transform","translate("+margin.left+","+margin.top+")");
+
+            const loadData = async function() {
+              
+              const nyrent = await d3.json("ny_rent.topo.json");
+              console.log(nyrent);
+
+
+            var state = topojson.feature(nyrent, nyrent.objects.state);
+            var zips = topojson.feature(nyrent, nyrent.objects.zip_codes)
+            var zipsMesh = topojson.mesh(nyrent, nyrent.objects.zip_codes);  
+            var projection = d3.geoMercator().fitSize([mapWidth, mapHeight], state);
+            var path = d3.geoPath().projection(projection);
+            console.log(state);
+            console.log(zipsMesh);
+            // 1B - Using Quantile sequential color scale
+            const colors = ["#f0f7da", "#c9df8a", "#77ab59", "#36802d", "#234d20"]; //got this color pallette from this site (https://www.color-hex.com/color-palette/5016) I chose a green gradient because it reminds me of money and we're mapping rent across NY zipcodes
+            const median_rent= nyrent.objects.zip_codes.geometries.map(d => d.properties.median_monthly_rent); //does this properly use map? should I just use for loop?
+            console.log("Rent SUCCESSSSSS", median_rent) // values seem to look good
+            const colorScale = d3.scaleQuantile() 
+                           .domain(median_rent) //scale info taken from class lecture (10.09)
+                           .range(colors);
+
+            //1C Construct map thingymajig
+
+            let statePaths = map.selectAll("path.state").data(state.features)
+                       .join("path")
+                       .attr("class", "state")
+                       .attr("d", path)
+                       .attr("fill", "lightgrey");
+
+            let zipPaths = map.selectAll("path.zip").data(zips.features)
+                       .join("path")
+                       .attr("class", "zip")
+                       .attr("d", path)
+                       .style("fill", d => colorScale(d.properties.median_monthly_rent ) );
+
+                    console.log(zipPaths)
+
+            let momesh = map.append("path").datum(zipsMesh)
+                       .attr("class", "mesh")
+                       .attr("d", path)
+                       .attr("fill", "none")
+                       .attr("stroke", "white")
+                       .attr("stroke-width", 1);
+                
+                 console.log("zipsMesh", zipsMesh);
+              
+            //1D Putting Cornell's Belltower on the map (literally)
+
+            const [x, y] = projection([-76.4850, 42.4476]); //referred to documentation here (https://www.d3indepth.com/geographic/)
+
+                map.append("circle")
+                        .attr("cx", x)
+                        .attr("cy", y)
+                        .attr("r", 5)
+                        .attr("fill", "black");
+
+
+            //1E creating the color thresholds so the map can actually be interpreted
+            const thresholds = colorScale.quantiles(); //cited here (https://d3js.org/d3-scale/quantile)
             
+            thresholds.forEach((threshold, index) => {
+              d3.select("#thresholds").append("li")
+                .text(`Threshold ${index + 1}: $${(threshold)}`); //added dollar signs 
+            })
+
+            }
+
+          loadData();
+
+
+            </script>
         </p>
 
     </body>
