@@ -1,0 +1,139 @@
+<html>
+    <title>INFO 5100 - HW8 - Jillian Beck - JLB574  </title>
+    <head>
+    
+    <link href="https://fonts.googleapis.com/css?family=Lato:400,700|Raleway:400,700" rel="stylesheet">
+  
+    <script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/11.2.0/highlight.min.js"></script>
+    
+    <script src="https://d3js.org/d3.v7.min.js"></script>
+    <script src="https://d3js.org/topojson.v3.min.js"></script>
+    
+
+    <style>
+    
+    
+        .gridlines .domain {
+          display: none;
+        }
+        
+        .gridlines line {
+          stroke: #aaa;
+        }
+          
+      
+    </style>
+
+    </head>
+
+    <body>
+        <p>JLB574</p>
+    <p id = '1' > Problem One: Creating a Mario Kart Record Chart</p>
+    <svg id="graph" height="400" width="800" style="background: #fff; margin-top:50px" >
+    </svg>
+    <h2> mariokart_records.json </h2>
+    <script> 
+    const svg = d3.select("#graph"); //referred to lecture code (10/07) to define these variables
+    const width = svg.attr("width");
+    const height = svg.attr("height");
+    const margin = { top: 50, right: 50, bottom: 50, left:50};
+    const chartWidth = width - margin.left - margin.right;
+    const chartHeight = height - margin.top - margin.bottom;
+    const graph = svg.append("g").attr("transform","translate("+margin.left+","+margin.top+")");
+
+    //1A - ready? set? go.... choosing mario kart data for this one in case that didn't give it away
+    d3.json("mariokart_records.json", d3.autoType)                  
+                .then( (data) => {
+                console.log(data); 
+            
+        //1B - Creating scalesssssssssssssssssssssss
+        const time = d3.timeParse("%Y-%m-%d");
+        const earlydate = time(data.earliest_date)
+        const latedate = time(data.latest_date)
+
+        const xScale = d3.scaleTime()
+                .domain([earlydate, latedate])
+                .range([0 + 10, chartWidth]); //looked at example graph and noticed that there seems to be extra padding so added 10 
+        
+        const yScale = d3.scaleLinear()
+                .domain([data.min_value, data.max_value])
+                .range([chartHeight - 10, 0]);    //similar to above, i wanted to add extra padding to make the bottom line more visible so subtracted ten
+                
+        const colorScale = d3.scaleOrdinal(d3.schemeSet2); //took color scheme from here: https://d3js.org/d3-scale-chromatic/categorical
+
+        
+        //1C - Constructing the gridlines
+
+        //making all of the X-axis stuffffffff
+
+
+                let bottomAxis = d3.axisBottom(xScale)
+                let bottomGridlines = d3.axisBottom(xScale)
+                                        .tickSize(-chartHeight)
+                                        .tickFormat("")
+                graph.append("g")
+                        .attr("class", "x axis")
+                        .attr("transform", `translate(0,${chartHeight})`)
+                        .call(bottomAxis);
+
+                graph.append("g")
+                        .attr("class", "x gridlines")
+                        .attr("transform", `translate(0,${chartHeight})`)
+                        .call(bottomGridlines);
+        
+        // and now making all of the Y-Axis stufffffffff
+
+                let leftAxis = d3.axisLeft(yScale)
+                let leftGridlines = d3.axisLeft(yScale)
+                                      .tickSize(-chartWidth)
+                                      .tickFormat("")
+                    
+                graph.append("g")
+                        .attr("class", "y axis")
+                        .call(leftAxis);
+
+                graph.append("g")
+                        .attr("class", "y gridlines")
+                        .call(leftGridlines);
+
+        //1D - (aka One Direction): Making our graph lines
+
+        //d3.line() code adapted from lecture code (09/30)
+        var lineGen = d3.line()
+                    .x( d => xScale(time(d.date)))
+                    .y( d => yScale(d.record_time))
+        
+        //1E - creating gTags and using data.join to apply colors to our lines for when we make them
+        let gTags = graph.selectAll(".line-group")
+                .data(data.timeseries)
+                .join("g")
+                .attr("class", "line-group")
+                .style("stroke", d => colorScale(d.track)); 
+
+        //1F - annddddd last but not least, making multiple lines
+        gTags.append("path")
+                .attr("d", d => lineGen(d.values))
+                .attr("stroke-width", 2) //making stroke-width two vis instructions
+                .attr("fill", "none");
+
+
+        //BONUSSSS for quiz
+        //1G: let's try to add some circles to our lovely graph
+     
+        gTags.selectAll('circle') //used sample code from the instructions
+                .data( d => d.values ) // "look at each G tag’s data, d, and use d.values in this data join to make the circle elements"
+                .join('circle')
+                .attr("fill", d => colorScale(d.track)) //using d.track to match the point colors wiht the color scheme of our already generated lines
+                .attr("cx", d => xScale(time(d.date))) 
+                .attr("cy", d => yScale(d.record_time))
+                .attr("r", 2); //radius twopx per instructions
+
+
+        });
+    
+    </script>
+
+
+    </body>
+
+</html>
