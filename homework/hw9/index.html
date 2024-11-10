@@ -1,0 +1,192 @@
+<html>
+    <title>INFO 5100 - HW9 - Jillian Beck - JLB574  </title>
+    <head>
+    
+    <link href="https://fonts.googleapis.com/css?family=Lato:400,700|Raleway:400,700" rel="stylesheet">
+  
+    <script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/11.2.0/highlight.min.js"></script>
+    
+    <script src="https://d3js.org/d3.v7.min.js"></script>
+    <script src="https://d3js.org/topojson.v3.min.js"></script>
+    
+
+    <style>
+    
+
+      
+    </style>
+
+    </head>
+
+
+    <body>
+
+    <p id = "1"> 
+    
+    Showing Graph of Les Miserables Characters
+
+    </p>
+    <!-- 1A: the lovely part where we load data, create SVG, and set the color scheme -->
+    <svg id="graph" width="600" height="600"> </svg>
+
+    <script>
+    
+    const layer = d3.select("#graph").append("g");
+    const width = d3.select("#graph").attr("width");
+    const height = d3.select("#graph").attr("height");
+    const margin = { top: 20, right: 20, bottom: 20, left: 20 };
+
+    let chartArea = layer.append("g").attr("transform",`translate(${margin.left},${margin.top})`);                
+
+
+  
+  
+    const requestData = async () => { 
+
+        const lesmis = await d3.json("miserables.json");
+        
+        console.log(lesmis);
+  
+        var nodes = lesmis.nodes; //adapted from lecture notes (24.10.30)
+       
+        var links = lesmis.links;
+        
+        console.log("Nodes:", nodes);
+        console.log("Links:", links);
+
+        const lineExtent = d3.extent(links, d => d.value); //adapted from lecture code (24.10.28)
+        const lineScale = d3.scaleLinear().domain(lineExtent).range([1,5]); 
+        const colorScale = d3.scaleOrdinal(d3.schemeCategory10);       
+
+        //1B: Use the force. AKA making the ForceSimulation here
+
+        //code adapted from lecture notes (24.10.30)
+        var sim = d3.forceSimulation()
+                    .nodes(nodes)
+                    .force("links", d3.forceLink()  
+                                            .links(links)    
+                                            .id( node => node['character'] ) ) //our "id" for the links for this data is the character names
+                    .force("repulse", d3.forceManyBody().strength(-20) ) 
+                    .force("center", d3.forceCenter(width/2.0, height/2.0))
+
+                    .on("tick", render); //1C: placed here cause we need to call our render function
+
+        
+        //1C: RENDERRRRRRR! Creating the render function so that we can SEE the force, e.g the graph lol
+        
+        //also heavily adapted from lecture notes (24.10.30)
+        function render() {
+  
+        let lines = layer.selectAll("line.link").data(links)
+            .join(
+                enter => enter.append("line")
+                            .attr("class","link")
+                            .attr("stroke","#333") 
+                            .attr("opacity", 1)
+                            .attr("stroke-width", d => lineScale(d.value))
+                        )
+                            .attr("x1", d => d.source.x).attr("x2", d => d.target.x)  
+                            .attr("y1", d => d.source.y).attr("y2", d => d.target.y);
+        
+            
+        let circles = layer.selectAll("circle.node").data(nodes)
+                .join(
+                    enter => enter.append("circle")
+                                .attr("class","node")
+                                .attr("stroke", "#333") 
+                                .attr("stroke-width", 1)
+                                .attr("r", 5)
+                                .attr("cx", 0)
+                                .attr("cy", 0)
+                                .attr("fill", d => colorScale(d.group))
+                                //1D: using mouseover and mouseout to create the character labels for the nodes
+                                //adapted code from lecture notes on mouseover interactivity (24.09.25)
+                                /*
+                                .on("mouseover", function(event, d) {
+                                    d3.select(this).attr("r", 5*2); //making radius bigger when hovering
+                                    d3.select(`#label-${d.index}`).style("display", "block"); //have to use "block" because the labels are set to display "none" which means they don't exist so block makes them exist again, whereas "visible" would be used for when objects are just hidden but still present
+                                })
+                                .on("mouseout", function(event, d) {
+                                    d3.select(this).attr("r", 5); //setting the circle size back to it's original size
+                                    d3.select(`#label-${d.index}`).style("display", "none"); 
+                                })
+                                */
+                            
+                            .call( d3.drag().on("start",dragstart)
+                                                  .on("drag",dragging)
+                                                  .on("end",dragend) )
+                            
+
+                )
+                                .attr("transform", d => `translate(${d.x},${d.y})`);
+
+
+
+            
+        
+        //1D: time to add labels to the points so that the graph actually means something
+        //adapted code from lecture notes on mouseover interactivity (24.09.25)
+        const labels = layer.selectAll("text.character")
+                .data(nodes)
+                .style("display", "none") //hiding the character name until the mouseover event is activated
+                .join("text")
+                .attr("class", "character")
+                .attr("id", d.index)
+               // .attr("id", d => `label-${d.index}`)  //using node's index value to match the specific character name to taht specific node      
+                .attr("x", d => d.x + 17) //trying to offset so that the labels are more legible but isnt really working too well
+                .attr("y", d => d.y + 15) 
+                .text(d => d.character); //setting text for the label to the character name
+                
+
+        }
+
+        //1E: attempting to make a drag interactivity
+
+        //all of the drag features were adapted directly from the lecture demo (24.10.30)
+        var label = layer.append("text").attr("id","label");
+        
+        function dragstart(event, d) {
+            if (!event.active) {
+            
+            label.text(d.id); //have to specify the specific id like in the labels for part D
+            sim.alphaTarget(0.08).restart();
+
+            }
+
+           
+            d.fx = event.x;
+            d.fy = event.y;
+
+            label.text(d.character) //now putting the text of the specific character names for each node and offsetting
+                .attr("x",event.x + 5).attr("y",event.y);
+
+        }
+
+        function dragging(event, d) {
+            d.fx = event.x;
+            d.fy = event.y;
+            label.text(d.character)
+                .attr("x",event.x + 5).attr("y",event.y);
+
+        }
+        function dragend(event, d) { //ending the drag event
+            if (!event.active) {
+            sim.alphaTarget(0); 
+            label.text("");
+            }
+
+            d.fx = null; //nulling out so it can repeat on the next node
+            d.fy = null;
+
+        }
+      }
+
+    requestData(); //can't forget to call the actual function
+ 
+    </script>
+
+      
+  
+
+    </body>
+</html>
