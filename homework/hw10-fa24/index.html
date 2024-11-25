@@ -1,0 +1,69 @@
+<html>
+    <title>INFO 5100 - HW10 - Jillian Beck - JLB574  </title>
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Movie Barcodes</title>
+    <script src="https://d3js.org/d3.v7.min.js"></script>
+</head>
+<body>
+    <div id="barcodes"></div>
+
+    <script>
+
+    async function generateBarcodes() {
+            try {
+                const data = await d3.json("movie_barcodes.json");
+
+               
+                console.log(data);
+
+               
+                createBarcodes(data);
+            } catch (error) {
+                console.error("Error loading the dataset:", error);
+            }
+        }
+
+        
+        function createBarcodes(data) {
+            const container = d3.select("#barcodes");
+
+           
+            data.forEach(movie => {
+                
+                const movieDiv = container.append("div").attr("class", "movie");
+
+                
+                movieDiv.append("h3").text(movie.title);
+
+                const canvas = movieDiv.append("canvas")
+                    .attr("width", 800)
+                    .attr("height", 100) 
+                    .node();
+
+                
+                renderBarcode(canvas, movie.bars);
+            });
+        }
+
+       
+        function renderBarcode(canvas, bars) {
+            const ctx = canvas.getContext("2d");
+
+            
+            bars.forEach(bar => {
+                ctx.strokeStyle = bar.color; 
+                ctx.beginPath(); 
+                ctx.moveTo(bar.x + 0.5, 0);
+                ctx.lineTo(bar.x + 0.5, 100); 
+                ctx.stroke();
+            });
+        }
+
+        
+        generateBarcodes();
+    </script>
+</body>
+</html>
