@@ -2,68 +2,74 @@
     <title>INFO 5100 - HW10 - Jillian Beck - JLB574  </title>
 
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Movie Barcodes</title>
+
+    <title>Last Homework ! : Let's make movie barcodessss </title>
     <script src="https://d3js.org/d3.v7.min.js"></script>
 </head>
 <body>
+    <!-- 1B: making our lovely barcodes div-->
     <div id="barcodes"></div>
 
     <script>
 
-    async function generateBarcodes() {
-            try {
+// 1A: making the asynch function with d3.json and await
+    async function loadData() {
                 const data = await d3.json("movie_barcodes.json");
 
-               
-                console.log(data);
+                console.log(data); //double checking to make sure we don't get any errors when loading in the data
 
-               
-                createBarcodes(data);
-            } catch (error) {
-                console.error("Error loading the dataset:", error);
-            }
-        }
+                makebars(data);
+
+                console.log(data)
+            //all looks good so far
+    }
 
         
-        function createBarcodes(data) {
+        function makebars(data) {
             const container = d3.select("#barcodes");
 
-           
+           //1C: implementing our trustworthy forEach loops to iterate through each of the movies in the data
             data.forEach(movie => {
                 
-                const movieDiv = container.append("div").attr("class", "movie");
+                const div = container.append("div").attr("class", "movie"); //very creatively naming this container 'div'
 
-                
-                movieDiv.append("h3").text(movie.title);
+                //1D: one direction...making our titles ! 
+                div.append("h5").text(movie.title); //setting the movie title to h5 as instructed
+                //is there a more complex way I'm supposed to be making these titles...?
 
-                const canvas = movieDiv.append("canvas")
+                const canvas = div.append("canvas")
                     .attr("width", 800)
-                    .attr("height", 100) 
-                    .node();
+                    .attr("height", 100);
 
                 
-                renderBarcode(canvas, movie.bars);
+                colorbars(canvas, movie.bars);
             });
         }
 
-       
-        function renderBarcode(canvas, bars) {
-            const ctx = canvas.getContext("2d");
+        //1E: DROPPING BARS(of colors based on movie stills):
 
-            
+        function colorbars(canvas, bars) {
+
+            //adapted from lecture code: (24.11.20)
+            const context = canvas.node().getContext("2d"); //retrieving the canvas element we made above 
+                                 //need to use the .node here in order to get the DOM element instead of d3 selection object #debugging-pro
+
+
+            //creating the nested forloop (i'm doing Option A !)
+
+            //code adapted from lecture code: (24.11.13)
             bars.forEach(bar => {
-                ctx.strokeStyle = bar.color; 
-                ctx.beginPath(); 
-                ctx.moveTo(bar.x + 0.5, 0);
-                ctx.lineTo(bar.x + 0.5, 100); 
-                ctx.stroke();
+                context.strokeStyle = bar.color; //setting stroke style to the bar colors as stated in assignment
+                context.beginPath(); 
+                context.moveTo(bar.x + 0.5, 0); //let's add our 0.5 so the bar is visible
+                context.lineTo(bar.x + 0.5, 100); 
+                context.stroke();
             });
         }
 
         
-        generateBarcodes();
+        loadData(); //can't forget to call the function so that the code actually runs lol
     </script>
 </body>
 </html>
+<!-- Looking at these barcodes is actually super cool; I've obviously seen these before on movie posters and stuff you can buy online but it's interesting to see how organized some movies contain their color scheme throughout! Dune for example has very little color variation, in contrast we can look at an animated movie like Alladin and see the overwhelming array of colors-->
